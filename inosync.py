@@ -50,6 +50,8 @@ class RsyncEvent(ProcessEvent):
 
   def sync(self):
     args = [config.rsync, "-ltrp", "--delete"]
+    if config.extra:
+      args.append(config.extra)
     args.append("--bwlimit=%s" % config.rspeed)
     if config.logfile:
       args.append("--log-file=%s" % config.logfile)
@@ -143,6 +145,8 @@ def load_config(filename):
   if not "logfile" in dir(config):
     config.logfile = None
 
+  if not "extra" in dir(config):
+    config.extra = ""
   if not "rsync" in dir(config):
     config.rsync = "/usr/bin/rsync"
   if not os.path.isabs(config.rsync):

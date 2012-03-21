@@ -16,6 +16,9 @@ rnodes = [
 	"c.mirror.com:" + rpath,
 ]
 
+# extra, raw parameters to rsync
+#extra = "--rsh=ssh -a"
+
 # limit remote sync speed (in KB/s, 0 = no limit)
 #rspeed = 0
 
