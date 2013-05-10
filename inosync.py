@@ -131,6 +131,12 @@ def load_config(filename):
       raise RuntimeError, "one of the watch paths does not exist: %s" % wpath
     if not os.path.isabs(wpath):
       config.wpaths[config.wpaths.index(wpath)] = os.path.abspath(wpath)
+  
+  for owpath in config.wpaths:
+    for wpath in config.wpaths:
+      if os.path.realpath(owpath) in os.path.realpath(wpath) and wpath != owpath:
+	raise RuntimeError, "You cannot specify %s in wpaths which is a subdirectory of %s since it is already synced." % (wpath, owpath)
+
 
   if not "rpaths" in dir(config):
     raise RuntimeError, "no paths given for the transfer"
