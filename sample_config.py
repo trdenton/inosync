@@ -3,7 +3,7 @@ wpaths = ["/home/username/path1/", "/home/username/path2/"]
 
 # exclude list for rsync
 rexcludes = [
-	".git",
+	"/.git",
 ]
 
 # rpaths has one-to-one correspondence with wpaths for syncing multiple directories
@@ -35,7 +35,7 @@ rnodes = [
 #edelay = 10
 
 # rsync log file for updates
-logfile = "/home/nero/inosync.log"
+logfile = "/home/username/inosync.log"
 
 # rsync binary path
 #rsync = "/usr/bin/rsync"

@@ -135,7 +135,7 @@ def load_config(filename):
   if not "rpaths" in dir(config):
     raise RuntimeError, "no paths given for the transfer"
   if len(config.wpaths) != len(config.rpaths):
-    raise RuntimeError, "the no. of report paths must be equal to the number of watched paths"
+    raise RuntimeError, "the no. of remote paths must be equal to the number of watched paths"
   
 
 
