@@ -47,22 +47,22 @@ variables. Below is an example configuration to synchronize ``/var/www``
 except ``/var/www/localhost`` to 3 remote locations:
 ::
 
-  # directory that should be watched for changes
-  wpath = "/var/www/"
+  # array of directories that should be watched for changes
+  wpaths = ["/var/www/"]
 
   # exclude list for rsync
   rexcludes = [
   	"/localhost",
   ]
 
-  # common remote path
-  rpath = "/var/www/"
+  # rpaths has one-to-one correspondence with wpaths for syncing multiple directories
+  rpaths = ["/var/www/"]
 
   # remote locations in rsync syntax
   rnodes = [
-  	"a.mirror.com:" + rpath,
-  	"b.mirror.com:" + rpath,
-  	"c.mirror.com:" + rpath,
+  	"user1@a.mirror.com:",
+  	"user2@b.mirror.com:",
+  	"user3@c.mirror.com:",
   ]
 
   # extra, raw parameters to rsync
@@ -100,6 +100,7 @@ are several shortcomings:
   directories`)
 - It is easily possible to flood the daemon with huge amounts of change events,
   potentially resulting in enormous bandwidth and connection usage.
+- Excludes currently apply to each path to be synced and there is no way to specify per-path excludes yet.
 
 Requirements
 ============

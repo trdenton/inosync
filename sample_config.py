@@ -1,19 +1,18 @@
 # directory that should be watched for changes
-wpath = "/var/www/"
+wpaths = ["/home/username/path1/", "/home/username/path2/"]
 
 # exclude list for rsync
 rexcludes = [
-	"/localhost",
+	"/.git",
 ]
 
-# common remote path
-rpath = "/var/www/"
+# rpaths has one-to-one correspondence with wpaths for syncing multiple directories
+rpaths = ["/home/rusername/rpath1", "/home/rusername/rpath2/"]
 
 # remote locations in rsync syntax
 rnodes = [
-	"a.mirror.com:" + rpath,
-	"b.mirror.com:" + rpath,
-	"c.mirror.com:" + rpath,
+	"username@server1.com:",
+	"username2@server2.com:",
 ]
 
 # extra, raw parameters to rsync
@@ -36,7 +35,7 @@ rnodes = [
 #edelay = 10
 
 # rsync log file for updates
-#logfile = /var/log/inosync.log
+logfile = "/home/username/inosync.log"
 
 # rsync binary path
 #rsync = "/usr/bin/rsync"

@@ -48,7 +48,7 @@ class RsyncEvent(ProcessEvent):
   def __init__(self, pretend=False):
     self.pretend = pretend
 
-  def sync(self):
+  def sync(self, wpath):
     args = [config.rsync, "-ltrp", "--delete"]
     if config.extra:
       args.append(config.extra)
@@ -58,22 +58,26 @@ class RsyncEvent(ProcessEvent):
     if "rexcludes" in dir(config):
       for rexclude in config.rexcludes:
         args.append("--exclude=%s" % rexclude)
-    args.append(config.wpath)
+    args.append(wpath)
+    rpath = config.rpaths[config.wpaths.index(wpath)]
     args.append("%s")
     cmd = " ".join(args)
     for node in config.rnodes:
       if self.pretend:
-        syslog("would execute `%s'" % (cmd % node))
+        syslog("would execute `%s'" % (cmd % (node + rpath)))
       else:
-        syslog(LOG_DEBUG, "executing %s" % (cmd % node))
-        proc = os.popen(cmd % node)
+        syslog(LOG_DEBUG, "executing %s" % (cmd % (node + rpath)))
+        proc = os.popen(cmd % (node + rpath))
         for line in proc:
           syslog(LOG_DEBUG, "[rsync] %s" % line.strip())
 
   def process_default(self, event):
     syslog(LOG_DEBUG, "caught %s on %s" % \
         (event.maskname, os.path.join(event.path, event.name)))
-    self.sync()
+    for wpath in config.wpaths:
+      if os.path.realpath(wpath) in os.path.realpath(event.path):
+        self.sync(wpath)
+        break
 
 def daemonize():
   try:
@@ -103,13 +107,15 @@ def daemonize():
 
 def load_config(filename):
   if not os.path.isfile(filename):
-    raise RuntimeError, "configuration file does not exist: %s" % filename
+    raise RuntimeError, "Configuration file does not exist: %s" % filename
 
   configdir  = os.path.dirname(filename)
   configfile = os.path.basename(filename)
 
   if configfile.endswith(".py"):
     configfile = configfile[0:-3]
+  else:
+    raise RuntimeError, "Configuration file must be a importable python file ending in .py"
 
   sys.path.append(configdir)
   exec("import %s as __config__" % configfile)
@@ -118,12 +124,26 @@ def load_config(filename):
   global config
   config = __config__
 
-  if not "wpath" in dir(config):
-    raise RuntimeError, "no watch path given"
-  if not os.path.isdir(config.wpath):
-    raise RuntimeError, "watch path does not exist: %s" % config.wpath
-  if not os.path.isabs(config.wpath):
-    config.wpath = os.path.abspath(config.wpath)
+  if not "wpaths" in dir(config):
+    raise RuntimeError, "no paths given to watch"
+  for wpath in config.wpaths:
+    if not os.path.isdir(wpath):
+      raise RuntimeError, "one of the watch paths does not exist: %s" % wpath
+    if not os.path.isabs(wpath):
+      config.wpaths[config.wpaths.index(wpath)] = os.path.abspath(wpath)
+  
+  for owpath in config.wpaths:
+    for wpath in config.wpaths:
+      if os.path.realpath(owpath) in os.path.realpath(wpath) and wpath != owpath:
+	raise RuntimeError, "You cannot specify %s in wpaths which is a subdirectory of %s since it is already synced." % (wpath, owpath)
+
+
+  if not "rpaths" in dir(config):
+    raise RuntimeError, "no paths given for the transfer"
+  if len(config.wpaths) != len(config.rpaths):
+    raise RuntimeError, "the no. of remote paths must be equal to the number of watched paths"
+  
+
 
   if not "rnodes" in dir(config) or len(config.rnodes) < 1:
     raise RuntimeError, "no remote nodes given"
@@ -180,13 +200,12 @@ def main():
   ev = RsyncEvent(options.pretend)
   notifier = AsyncNotifier(wm, ev, read_freq=config.edelay)
   mask = reduce(lambda x,y: x|y, [EventsCodes.ALL_FLAGS[e] for e in config.emask])
-  wds = wm.add_watch(config.wpath, mask, rec=True, auto_add=True)
-
-  syslog(LOG_DEBUG, "starting initial synchronization on %s" % config.wpath)
-  ev.sync()
-  syslog(LOG_DEBUG, "initial synchronization on %s done" % config.wpath)
-
-  syslog("resuming normal operations on %s" % config.wpath)
+  wds = wm.add_watch(config.wpaths, mask, rec=True, auto_add=True)
+  for wpath in config.wpaths:
+    syslog(LOG_DEBUG, "starting initial synchronization on %s" % wpath)
+    ev.sync(wpath)
+    syslog(LOG_DEBUG, "initial synchronization on %s done" % wpath)
+    syslog("resuming normal operations on %s" % wpath)
   asyncore.loop()
   sys.exit(0)
 
