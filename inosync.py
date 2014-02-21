@@ -134,7 +134,7 @@ def load_config(filename):
   
   for owpath in config.wpaths:
     for wpath in config.wpaths:
-      if os.path.realpath(owpath) in os.path.realpath(wpath) and wpath != owpath:
+      if os.path.realpath(owpath) in os.path.realpath(wpath) and wpath != owpath and len(os.path.split(wpath)) <> len(os.path.split(owpath)):
 	raise RuntimeError, "You cannot specify %s in wpaths which is a subdirectory of %s since it is already synced." % (wpath, owpath)
 
 
