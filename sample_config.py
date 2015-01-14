@@ -3,7 +3,7 @@ wpaths = ["/home/username/path1/", "/home/username/path2/"]
 
 # exclude list for rsync
 rexcludes = [
-	"/.git",
+	".git/",
 ]
 
 # rpaths has one-to-one correspondence with wpaths for syncing multiple directories
