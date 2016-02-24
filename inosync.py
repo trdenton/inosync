@@ -49,7 +49,8 @@ class RsyncEvent(ProcessEvent):
     self.pretend = pretend
 
   def sync(self, wpath):
-    args = [config.rsync, "-ltrp", "--delete"]
+    args = [config.rsync, "-ltrp"]
+    #ommitted "--delete" option, specify via extra in the config file if required
     if config.extra:
       args.append(config.extra)
     args.append("--bwlimit=%s" % config.rspeed)
